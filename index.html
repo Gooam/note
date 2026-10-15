@@ -20,7 +20,7 @@
       --red: #dc2626;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; }
-    body { margin: 0; padding: 10px; background: var(--bg); color: #1e293b; }
+    body { margin: 0; padding: 8px; background: var(--bg); color: #1e293b; }
     .container { max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
 
     /* 상단 날짜 선택 및 추가 바 */
@@ -31,17 +31,17 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     .date-select {
-      flex: 1; padding: 9px 10px; font-size: 16px; font-weight: 800;
+      flex: 1; padding: 8px 10px; font-size: 16px; font-weight: 800;
       border-radius: 8px; border: none; background: #fff; color: #0f172a;
     }
     .btn {
-      padding: 9px 12px; border-radius: 8px; border: none;
+      padding: 8px 12px; border-radius: 8px; border: none;
       font-weight: 800; font-size: 14px; cursor: pointer; white-space: nowrap;
     }
     .btn-add { background: #3b82f6; color: #fff; }
-    .btn-del { background: #ef4444; color: #fff; padding: 9px 10px; }
+    .btn-del { background: #ef4444; color: #fff; padding: 8px 10px; }
 
-    /* 날짜 추가 모달(팝업) */
+    /* 날짜 선택 달력 팝업 */
     .modal-bg {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
@@ -62,7 +62,7 @@
     .summary-card {
       background: var(--card); border-radius: 12px; padding: 10px;
       margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-      border: 2px solid #94a3b8; position: sticky; top: 6px; z-index: 10;
+      border: 2px solid #94a3b8; position: sticky; top: 4px; z-index: 10;
     }
     .summary-header {
       display: flex; justify-content: space-between; align-items: center;
@@ -74,24 +74,23 @@
     }
 
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { border: 1px solid var(--border); padding: 6px 5px; text-align: center; vertical-align: middle; }
-    .col-name { width: 27%; font-weight: 800; font-size: 14px; background: #f8fafc; color: #0f172a; }
+    th, td { border: 1px solid var(--border); padding: 4px 5px; text-align: center; vertical-align: middle; }
+    .col-name { width: 27%; font-weight: 800; font-size: 13px; background: #f8fafc; color: #0f172a; }
     .col-gold { width: 36.5%; }
     .col-cash { width: 36.5%; }
 
-    .th-gold { background: var(--gold-bg); color: var(--gold-text); font-size: 13px; border-bottom: 2px solid var(--gold-border); }
-    .th-cash { background: var(--cash-bg); color: var(--cash-text); font-size: 13px; border-bottom: 2px solid var(--cash-border); }
+    .th-gold { background: var(--gold-bg); color: var(--gold-text); font-size: 13px; border-bottom: 2px solid var(--gold-border); padding: 6px 4px; }
+    .th-cash { background: var(--cash-bg); color: var(--cash-text); font-size: 13px; border-bottom: 2px solid var(--cash-border); padding: 6px 4px; }
 
     .sum-val { font-size: 16px; font-weight: 800; background: #f8fafc; text-align: right; padding-right: 8px; }
     .diff-val { font-size: 16px; font-weight: 800; text-align: right; padding-right: 8px; background: #fff; }
-    .sub-don { display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-top: 1px; }
     .plus { color: var(--blue); }
     .minus { color: var(--red); }
 
-    /* 숫자 입력칸 스타일 */
+    /* 숫자 입력칸 스타일 (폭 줄임) */
     .num-input {
-      width: 100%; padding: 8px 6px; font-size: 16px; font-weight: 700;
-      text-align: right; border: 1px solid #cbd5e1; border-radius: 6px;
+      width: 100%; padding: 5px 6px; font-size: 15px; font-weight: 700;
+      text-align: right; border: 1px solid #cbd5e1; border-radius: 5px;
       background: #fff; color: #0f172a; outline: none;
     }
     .num-input:focus { border: 2px solid #2563eb; background: #eff6ff; }
@@ -132,24 +131,24 @@
       <thead>
         <tr>
           <th class="col-name">구분</th>
-          <th class="col-gold th-gold">🟡 금선입 (g)</th>
+          <th class="col-gold th-gold">🟡 금선입 (돈)</th>
           <th class="col-cash th-cash">💵 현금선입</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td class="col-name">합 계</td>
-          <td class="sum-val" id="sumGold">0</td>
+          <td class="sum-val" id="sumGold">0돈</td>
           <td class="sum-val" id="sumCash">0</td>
         </tr>
         <tr>
           <td class="col-name">보 유</td>
-          <td><input type="text" inputmode="decimal" class="num-input hold-input" id="holdGold" placeholder="보유금 입력" oninput="onHoldInput('gold', this)"></td>
-          <td><input type="text" inputmode="numeric" class="num-input hold-input" id="holdCash" placeholder="보유현금 입력" oninput="onHoldInput('cash', this)"></td>
+          <td><input type="text" inputmode="decimal" class="num-input hold-input" id="holdGold" placeholder="보유금(돈)" oninput="onHoldInput('gold', this)"></td>
+          <td><input type="text" inputmode="numeric" class="num-input hold-input" id="holdCash" placeholder="보유현금" oninput="onHoldInput('cash', this)"></td>
         </tr>
         <tr>
           <td class="col-name">차 액</td>
-          <td class="diff-val" id="diffGold">0</td>
+          <td class="diff-val" id="diffGold">0돈</td>
           <td class="diff-val" id="diffCash">0</td>
         </tr>
       </tbody>
@@ -166,7 +165,7 @@
       <thead>
         <tr>
           <th class="col-name">업체명</th>
-          <th class="col-gold th-gold">🟡 금선입 (g)</th>
+          <th class="col-gold th-gold">🟡 금선입 (돈)</th>
           <th class="col-cash th-cash">💵 현금선입</th>
         </tr>
       </thead>
@@ -188,15 +187,14 @@
 </div>
 
 <script>
-  // 고정 업체명 9곳
   const VENDORS = [
     "샤크존예작", "순천용당", "유성예작", "유성티파니",
     "제이앤", "마산창원", "청주상당", "수정금방", "홍주얼리"
   ];
 
-  const STORAGE_KEY = "naemin_mobile_ledger_v1";
+  const STORAGE_KEY = "naemin_mobile_ledger_v2";
   let appData = {
-    formulaMode: "holdMinusSum", // 'holdMinusSum'(보유-합계) 또는 'sumMinusHold'(합계-보유)
+    formulaMode: "holdMinusSum",
     currentDate: "",
     records: {}
   };
@@ -243,14 +241,8 @@
   }
 
   function formatGold(num) {
-    if (num === 0) return "0";
-    return Number(num.toFixed(2)).toLocaleString('ko-KR', { maximumFractionDigits: 2 });
-  }
-
-  function formatDon(gram) {
-    if (!gram || gram === 0) return "";
-    const don = gram / 3.75;
-    return `(${don.toFixed(2)}돈)`;
+    if (num === 0) return "0돈";
+    return Number(num.toFixed(2)).toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + "돈";
   }
 
   function formatCash(num) {
@@ -351,11 +343,9 @@
     const diffG = appData.formulaMode === "holdMinusSum" ? (holdG - sumG) : (sumG - holdG);
     const diffC = appData.formulaMode === "holdMinusSum" ? (holdC - sumC) : (sumC - holdC);
 
-    // 합계 표시 (금은 g과 돈 함께 표시)
-    document.getElementById("sumGold").innerHTML = `${formatGold(sumG)}g <span class="sub-don">${formatDon(sumG)}</span>`;
+    document.getElementById("sumGold").textContent = formatGold(sumG);
     document.getElementById("sumCash").textContent = formatCash(sumC);
 
-    // 차액 표시
     setDiffCell("diffGold", diffG, true);
     setDiffCell("diffCash", diffC, false);
   }
@@ -365,7 +355,7 @@
     const rounded = isGold ? Number(val.toFixed(2)) : Math.round(val);
     const prefix = rounded > 0 ? "+" : "";
     if (isGold) {
-      el.innerHTML = `${prefix}${formatGold(rounded)}g <span class="sub-don">${formatDon(rounded)}</span>`;
+      el.textContent = prefix + formatGold(rounded);
     } else {
       el.textContent = prefix + formatCash(rounded);
     }
