@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>선입 정산 장부</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --primary: #0f172a;
+      --gold-bg: #fefce8;
+      --gold-border: #fde047;
+      --gold-text: #854d0e;
+      --cash-bg: #f0fdf4;
+      --cash-border: #86efac;
+      --cash-text: #166534;
+      --border: #cbd5e1;
+      --blue: #2563eb;
+      --red: #dc2626;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; }
+    body { margin: 0; padding: 10px; background: var(--bg); color: #1e293b; }
+    .container { max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
+
+    /* 상단 날짜 선택 및 추가 바 */
+    .header-bar {
+      background: var(--primary); color: #fff; padding: 10px 12px;
+      border-radius: 12px; display: flex; justify-content: space-between;
+      align-items: center; gap: 6px; margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .date-select {
+      flex: 1; padding: 9px 10px; font-size: 16px; font-weight: 800;
+      border-radius: 8px; border: none; background: #fff; color: #0f172a;
+    }
+    .btn {
+      padding: 9px 12px; border-radius: 8px; border: none;
+      font-weight: 800; font-size: 14px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-add { background: #3b82f6; color: #fff; }
+    .btn-del { background: #ef4444; color: #fff; padding: 9px 10px; }
+
+    /* 날짜 추가 모달(팝업) */
+    .modal-bg {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
+    }
+    .modal-box {
+      background: #fff; padding: 20px; border-radius: 14px; width: 88%; max-width: 340px;
+      text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-box h3 { margin: 0 0 12px; font-size: 17px; }
+    .modal-box input[type="date"] {
+      width: 100%; padding: 10px; font-size: 17px; font-weight: 700;
+      border: 2px solid #cbd5e1; border-radius: 8px; margin-bottom: 14px;
+    }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns button { flex: 1; padding: 10px; font-size: 15px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; }
+
+    /* 상단 고정 요약 전광판 */
+    .summary-card {
+      background: var(--card); border-radius: 12px; padding: 10px;
+      margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      border: 2px solid #94a3b8; position: sticky; top: 6px; z-index: 10;
+    }
+    .summary-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px; font-size: 13px; font-weight: 800; color: #334155;
+    }
+    .formula-btn {
+      background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 4px 8px; font-size: 11px; font-weight: 800; color: #1e293b; cursor: pointer;
+    }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid var(--border); padding: 6px 5px; text-align: center; vertical-align: middle; }
+    .col-name { width: 27%; font-weight: 800; font-size: 14px; background: #f8fafc; color: #0f172a; }
+    .col-gold { width: 36.5%; }
+    .col-cash { width: 36.5%; }
+
+    .th-gold { background: var(--gold-bg); color: var(--gold-text); font-size: 13px; border-bottom: 2px solid var(--gold-border); }
+    .th-cash { background: var(--cash-bg); color: var(--cash-text); font-size: 13px; border-bottom: 2px solid var(--cash-border); }
+
+    .sum-val { font-size: 16px; font-weight: 800; background: #f8fafc; text-align: right; padding-right: 8px; }
+    .diff-val { font-size: 16px; font-weight: 800; text-align: right; padding-right: 8px; background: #fff; }
+    .sub-don { display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-top: 1px; }
+    .plus { color: var(--blue); }
+    .minus { color: var(--red); }
+
+    /* 숫자 입력칸 스타일 */
+    .num-input {
+      width: 100%; padding: 8px 6px; font-size: 16px; font-weight: 700;
+      text-align: right; border: 1px solid #cbd5e1; border-radius: 6px;
+      background: #fff; color: #0f172a; outline: none;
+    }
+    .num-input:focus { border: 2px solid #2563eb; background: #eff6ff; }
+    .hold-input { background: #fffbeb; border: 1.5px solid #f59e0b; }
+
+    /* 업체 리스트 카드 */
+    .list-card {
+      background: var(--card); border-radius: 12px; padding: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px;
+    }
+    .list-title {
+      font-size: 13px; font-weight: 800; color: #475569;
+      margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-reset {
+      background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 3px 8px; font-size: 11px; font-weight: 700; color: #64748b; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 1. 상단 날짜 선택 및 추가 -->
+  <div class="header-bar">
+    <select id="dateSelect" class="date-select" onchange="changeDate(this.value)"></select>
+    <button class="btn btn-add" onclick="openDateModal()">+ 새 날짜</button>
+    <button class="btn btn-del" onclick="deleteCurrentDate()">삭제</button>
+  </div>
+
+  <!-- 2. 상단 고정 요약 전광판 (합계 / 보유 / 차액) -->
+  <div class="summary-card">
+    <div class="summary-header">
+      <span>📊 실시간 정산 요약</span>
+      <button class="formula-btn" id="formulaBtn" onclick="toggleFormula()">차액: 보유 - 합계 🔄</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-name">구분</th>
+          <th class="col-gold th-gold">🟡 금선입 (g)</th>
+          <th class="col-cash th-cash">💵 현금선입</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-name">합 계</td>
+          <td class="sum-val" id="sumGold">0</td>
+          <td class="sum-val" id="sumCash">0</td>
+        </tr>
+        <tr>
+          <td class="col-name">보 유</td>
+          <td><input type="text" inputmode="decimal" class="num-input hold-input" id="holdGold" placeholder="보유금 입력" oninput="onHoldInput('gold', this)"></td>
+          <td><input type="text" inputmode="numeric" class="num-input hold-input" id="holdCash" placeholder="보유현금 입력" oninput="onHoldInput('cash', this)"></td>
+        </tr>
+        <tr>
+          <td class="col-name">차 액</td>
+          <td class="diff-val" id="diffGold">0</td>
+          <td class="diff-val" id="diffCash">0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. 9개 고정 업체 입력 표 -->
+  <div class="list-card">
+    <div class="list-title">
+      <span>📝 업체별 입력 <span style="color:#16a34a; font-weight:700;">(자동저장)</span></span>
+      <button class="btn-reset" onclick="clearCurrentInputs()">현재칸 비우기</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-name">업체명</th>
+          <th class="col-gold th-gold">🟡 금선입 (g)</th>
+          <th class="col-cash th-cash">💵 현금선입</th>
+        </tr>
+      </thead>
+      <tbody id="vendorBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 날짜 선택 달력 팝업 -->
+<div class="modal-bg" id="dateModal">
+  <div class="modal-box">
+    <h3>📅 추가할 날짜 선택</h3>
+    <input type="date" id="newDateInput">
+    <div class="modal-btns">
+      <button style="background:#e2e8f0; color:#334155;" onclick="closeDateModal()">취소</button>
+      <button style="background:#2563eb; color:#fff;" onclick="confirmAddDate()">칸 생성</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 고정 업체명 9곳
+  const VENDORS = [
+    "샤크존예작", "순천용당", "유성예작", "유성티파니",
+    "제이앤", "마산창원", "청주상당", "수정금방", "홍주얼리"
+  ];
+
+  const STORAGE_KEY = "naemin_mobile_ledger_v1";
+  let appData = {
+    formulaMode: "holdMinusSum", // 'holdMinusSum'(보유-합계) 또는 'sumMinusHold'(합계-보유)
+    currentDate: "",
+    records: {}
+  };
+
+  function getTodayStr() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function createEmptyRecord() {
+    const rec = { holdGold: "", holdCash: "", vendors: {} };
+    VENDORS.forEach(v => { rec.vendors[v] = { gold: "", cash: "" }; });
+    return rec;
+  }
+
+  function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try { appData = JSON.parse(saved); } catch (e) {}
+    }
+    const dates = Object.keys(appData.records).sort().reverse();
+    if (dates.length === 0) {
+      const today = getTodayStr();
+      appData.records[today] = createEmptyRecord();
+      appData.currentDate = today;
+    } else if (!appData.currentDate || !appData.records[appData.currentDate]) {
+      appData.currentDate = dates[0];
+    }
+    saveData();
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  }
+
+  function parseNum(val) {
+    if (!val) return 0;
+    const cleaned = String(val).replace(/,/g, '').trim();
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+
+  function formatGold(num) {
+    if (num === 0) return "0";
+    return Number(num.toFixed(2)).toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+  }
+
+  function formatDon(gram) {
+    if (!gram || gram === 0) return "";
+    const don = gram / 3.75;
+    return `(${don.toFixed(2)}돈)`;
+  }
+
+  function formatCash(num) {
+    return Math.round(num).toLocaleString('ko-KR');
+  }
+
+  function formatCashInput(str) {
+    if (!str) return "";
+    const isMinus = str.trim().startsWith("-");
+    const raw = str.replace(/[^0-9]/g, "");
+    if (!raw) return isMinus ? "-" : "";
+    return (isMinus ? "-" : "") + Number(raw).toLocaleString('ko-KR');
+  }
+
+  function renderDateSelect() {
+    const sel = document.getElementById("dateSelect");
+    const dates = Object.keys(appData.records).sort().reverse();
+    sel.innerHTML = "";
+    dates.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = `📅 ${d}`;
+      if (d === appData.currentDate) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderVendorTable() {
+    const tbody = document.getElementById("vendorBody");
+    tbody.innerHTML = "";
+    const rec = appData.records[appData.currentDate];
+
+    VENDORS.forEach(v => {
+      const vData = (rec.vendors && rec.vendors[v]) ? rec.vendors[v] : { gold: "", cash: "" };
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="col-name">${v}</td>
+        <td>
+          <input type="text" inputmode="decimal" class="num-input"
+            value="${vData.gold}" placeholder="0"
+            oninput="onVendorInput('${v}', 'gold', this)">
+        </td>
+        <td>
+          <input type="text" inputmode="numeric" class="num-input"
+            value="${formatCashInput(String(vData.cash))}" placeholder="0"
+            oninput="onVendorInput('${v}', 'cash', this)">
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("holdGold").value = rec.holdGold || "";
+    document.getElementById("holdCash").value = formatCashInput(String(rec.holdCash || ""));
+    updateFormulaBtnText();
+    calculateTotals();
+  }
+
+  function onVendorInput(vendor, type, el) {
+    const rec = appData.records[appData.currentDate];
+    if (type === 'cash') {
+      const formatted = formatCashInput(el.value);
+      el.value = formatted;
+      rec.vendors[vendor].cash = formatted.replace(/,/g, '');
+    } else {
+      rec.vendors[vendor].gold = el.value;
+    }
+    saveData();
+    calculateTotals();
+  }
+
+  function onHoldInput(type, el) {
+    const rec = appData.records[appData.currentDate];
+    if (type === 'cash') {
+      const formatted = formatCashInput(el.value);
+      el.value = formatted;
+      rec.holdCash = formatted.replace(/,/g, '');
+    } else {
+      rec.holdGold = el.value;
+    }
+    saveData();
+    calculateTotals();
+  }
+
+  function calculateTotals() {
+    const rec = appData.records[appData.currentDate];
+    let sumG = 0, sumC = 0;
+
+    VENDORS.forEach(v => {
+      if (rec.vendors && rec.vendors[v]) {
+        sumG += parseNum(rec.vendors[v].gold);
+        sumC += parseNum(rec.vendors[v].cash);
+      }
+    });
+
+    const holdG = parseNum(rec.holdGold);
+    const holdC = parseNum(rec.holdCash);
+
+    const diffG = appData.formulaMode === "holdMinusSum" ? (holdG - sumG) : (sumG - holdG);
+    const diffC = appData.formulaMode === "holdMinusSum" ? (holdC - sumC) : (sumC - holdC);
+
+    // 합계 표시 (금은 g과 돈 함께 표시)
+    document.getElementById("sumGold").innerHTML = `${formatGold(sumG)}g <span class="sub-don">${formatDon(sumG)}</span>`;
+    document.getElementById("sumCash").textContent = formatCash(sumC);
+
+    // 차액 표시
+    setDiffCell("diffGold", diffG, true);
+    setDiffCell("diffCash", diffC, false);
+  }
+
+  function setDiffCell(id, val, isGold) {
+    const el = document.getElementById(id);
+    const rounded = isGold ? Number(val.toFixed(2)) : Math.round(val);
+    const prefix = rounded > 0 ? "+" : "";
+    if (isGold) {
+      el.innerHTML = `${prefix}${formatGold(rounded)}g <span class="sub-don">${formatDon(rounded)}</span>`;
+    } else {
+      el.textContent = prefix + formatCash(rounded);
+    }
+    el.className = "diff-val " + (rounded > 0 ? "plus" : (rounded < 0 ? "minus" : ""));
+  }
+
+  function toggleFormula() {
+    appData.formulaMode = appData.formulaMode === "holdMinusSum" ? "sumMinusHold" : "holdMinusSum";
+    saveData();
+    updateFormulaBtnText();
+    calculateTotals();
+  }
+
+  function updateFormulaBtnText() {
+    const btn = document.getElementById("formulaBtn");
+    btn.textContent = appData.formulaMode === "holdMinusSum"
+      ? "차액: 보유 - 합계 🔄"
+      : "차액: 합계 - 보유 🔄";
+  }
+
+  function changeDate(newDate) {
+    appData.currentDate = newDate;
+    saveData();
+    renderVendorTable();
+  }
+
+  function openDateModal() {
+    document.getElementById("newDateInput").value = getTodayStr();
+    document.getElementById("dateModal").style.display = "flex";
+  }
+
+  function closeDateModal() {
+    document.getElementById("dateModal").style.display = "none";
+  }
+
+  function confirmAddDate() {
+    const d = document.getElementById("newDateInput").value;
+    if (!d) return;
+    if (!appData.records[d]) {
+      appData.records[d] = createEmptyRecord();
+    }
+    appData.currentDate = d;
+    saveData();
+    renderDateSelect();
+    renderVendorTable();
+    closeDateModal();
+  }
+
+  function clearCurrentInputs() {
+    if (!confirm(`[${appData.currentDate}] 날짜의 입력된 숫자를 모두 0으로 비우시겠습니까?`)) return;
+    appData.records[appData.currentDate] = createEmptyRecord();
+    saveData();
+    renderVendorTable();
+  }
+
+  function deleteCurrentDate() {
+    const dates = Object.keys(appData.records);
+    if (dates.length <= 1) {
+      clearCurrentInputs();
+    } else {
+      if (!confirm(`[${appData.currentDate}] 날짜 기록을 아예 삭제하시겠습니까?`)) return;
+      delete appData.records[appData.currentDate];
+      appData.currentDate = Object.keys(appData.records).sort().reverse()[0];
+      saveData();
+      renderDateSelect();
+      renderVendorTable();
+    }
+  }
+
+  loadData();
+  renderDateSelect();
+  renderVendorTable();
+</script>
+</body>
+</html>
