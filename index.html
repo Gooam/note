@@ -94,13 +94,6 @@
     }
     .num-input:focus { border: 2px solid #2563eb; background: #eff6ff; }
 
-    .name-input {
-      width: 100%; padding: 4px; font-size: 13px; font-weight: 800;
-      text-align: center; border: 1.5px dashed #3b82f6; border-radius: 4px;
-      background: #eff6ff; color: #1e3a8a; outline: none;
-    }
-    .name-input:focus { background: #fff; border: 2px solid #2563eb; }
-
     /* 입력 리스트 카드 */
     .list-card {
       background: var(--card); border-radius: 12px; padding: 10px;
@@ -196,7 +189,8 @@
 </div>
 
 <script>
-  const STORAGE_KEY = "my_gold_note_ledger_v2";
+  // 기존 데이터가 안전하게 저장되도록 원래 키 유지
+  const STORAGE_KEY = "my_gold_note_ledger";
 
   const DEFAULT_COMPANIES = [
     "샤크존예작", "순천용당", "유성예작", "유성티파니", 
@@ -436,3 +430,61 @@
     const dates = Object.keys(appData.records).sort().reverse();
 
     dates.forEach(d => {
+      const div = document.createElement("div");
+      div.className = `modal-item ${d === appData.currentDate ? 'active' : ''}`;
+      div.innerHTML = `<span>📅 ${d}</span> <span>${d === appData.currentDate ? '🟢 선택됨' : ''}</span>`;
+      div.onclick = () => {
+        appData.currentDate = d;
+        saveData();
+        renderTable();
+        closeDateModal();
+      };
+      listEl.appendChild(div);
+    });
+
+    document.getElementById("dateModal").style.display = "flex";
+  }
+
+  function closeDateModal() {
+    document.getElementById("dateModal").style.display = "none";
+  }
+
+  function addNewDate() {
+    const newD = prompt("추가할 날짜를 입력하세요 (예: 2026-11-18)", getTodayStr());
+    if (!newD) return;
+    if (!appData.records[newD]) {
+      appData.records[newD] = createEmptyRecord();
+    }
+    appData.currentDate = newD;
+    saveData();
+    renderTable();
+  }
+
+  function clearCurrentInputs() {
+    if (!appData.currentDate) return;
+    if (!confirm(`[${appData.currentDate}] 날짜의 입력된 내용을 모두 비우시겠습니까?`)) return;
+    appData.records[appData.currentDate] = createEmptyRecord();
+    saveData();
+    renderTable();
+  }
+
+  function deleteCurrentDate() {
+    if (!appData.currentDate) return;
+    const dates = Object.keys(appData.records);
+    if (dates.length <= 1) {
+      alert("마지막 남은 날짜는 삭제할 수 없습니다.");
+      return;
+    }
+    if (!confirm(`[${appData.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
+    delete appData.records[appData.currentDate];
+    const remainDates = Object.keys(appData.records).sort().reverse();
+    appData.currentDate = remainDates[0];
+    saveData();
+    renderTable();
+  }
+
+  loadData();
+  renderTable();
+</script>
+</body>
+</html>
