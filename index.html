@@ -41,7 +41,7 @@
     .btn-add { background: #3b82f6; color: #fff; }
     .btn-del { background: #ef4444; color: #fff; }
 
-    /* 날짜 선택 목록 팝업 */
+    /* 날짜 선택 목록 팝업 (원래 쓰시던 라디오 버튼 형태) */
     .modal-bg {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
@@ -52,9 +52,8 @@
     }
     .modal-box h3 { margin: 0 0 12px; font-size: 16px; color: #0f172a; }
     .modal-list { max-height: 260px; overflow-y: auto; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: left; }
-    .modal-item { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .modal-item { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
     .modal-item:hover { background: #eff6ff; }
-    .modal-item.active { background: #eff6ff; color: #2563eb; }
 
     /* 상단 요약 전광판 */
     .summary-card {
@@ -164,7 +163,7 @@
   </div>
 </div>
 
-<!-- 날짜 선택 목록 팝업 -->
+<!-- 날짜 선택 목록 팝업 (원래 쓰시던 라디오 버튼 형태) -->
 <div class="modal-bg" id="dateModal">
   <div class="modal-box">
     <h3>📅 저장된 날짜 선택</h3>
@@ -174,6 +173,7 @@
 </div>
 
 <script>
+  // 원래 쓰시던 고유 데이터 저장소 키
   const STORAGE_KEY = "my_gold_note_ledger";
 
   const DEFAULT_COMPANIES = [
@@ -374,8 +374,8 @@
 
     dates.forEach(d => {
       const div = document.createElement("div");
-      div.className = `modal-item ${d === appData.currentDate ? 'active' : ''}`;
-      div.innerHTML = `📅 ${d}`;
+      div.className = `modal-item`;
+      div.innerHTML = `<span>📅 ${d}</span> <span>${d === appData.currentDate ? '🟢 선택됨' : ''}</span>`;
       div.onclick = () => {
         appData.currentDate = d;
         saveData();
@@ -406,7 +406,7 @@
   function clearCurrentInputs() {
     if (!appData.currentDate) return;
     if (!confirm(`[${appDate.currentDate}] 날짜의 입력된 내용을 모두 비우시겠습니까?`)) return;
-    appData.records[appData.currentDate] = createEmptyRecord();
+    appData.records[appDate.currentDate] = createEmptyRecord();
     saveData();
     renderTable();
   }
@@ -419,7 +419,7 @@
       return;
     }
     if (!confirm(`[${appDate.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
-    delete appData.records[appData.currentDate];
+    delete appData.records[appDate.currentDate];
     const remainDates = Object.keys(appData.records).sort().reverse();
     appData.currentDate = remainDates[0];
     saveData();
