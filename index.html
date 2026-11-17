@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>선입 정산 장부</title>
+  <title>금선입 장부</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -18,85 +18,90 @@
       --border: #cbd5e1;
       --blue: #2563eb;
       --red: #dc2626;
+      --purple: #7c3aed;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; }
     body { margin: 0; padding: 8px; background: var(--bg); color: #1e293b; }
     .container { max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
 
-    /* 상단 날짜 선택 및 추가 바 */
+    /* 상단 날짜 선택 바 */
     .header-bar {
       background: var(--primary); color: #fff; padding: 10px 12px;
       border-radius: 12px; display: flex; justify-content: space-between;
-      align-items: center; gap: 6px; margin-bottom: 10px;
+      align-items: center; gap: 6px; margin-bottom: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    .date-select {
-      flex: 1; padding: 8px 10px; font-size: 16px; font-weight: 800;
-      border-radius: 8px; border: none; background: #fff; color: #0f172a;
+    .date-select-btn {
+      flex: 1; padding: 8px 6px; font-size: 15px; font-weight: 800;
+      border-radius: 8px; border: none; background: #fff; color: #0f172a; text-align: center; cursor: pointer;
     }
     .btn {
-      padding: 8px 12px; border-radius: 8px; border: none;
-      font-weight: 800; font-size: 14px; cursor: pointer; white-space: nowrap;
+      padding: 8px 10px; border-radius: 8px; border: none;
+      font-weight: 800; font-size: 13px; cursor: pointer; white-space: nowrap;
     }
     .btn-add { background: #3b82f6; color: #fff; }
-    .btn-del { background: #ef4444; color: #fff; padding: 8px 10px; }
+    .btn-del { background: #ef4444; color: #fff; }
 
-    /* 날짜 선택 달력 팝업 */
+    /* 백업/복구 제어 바 */
+    .backup-bar {
+      display: flex; gap: 6px; margin-bottom: 10px;
+    }
+    .btn-backup { flex: 1; background: var(--purple); color: #fff; padding: 7px; border-radius: 8px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; }
+    .btn-restore { flex: 1; background: #059669; color: #fff; padding: 7px; border-radius: 8px; border: none; font-weight: 800; font-size: 12px; cursor: pointer; }
+
+    /* 날짜 선택 모달 팝업 */
     .modal-bg {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
     }
     .modal-box {
-      background: #fff; padding: 20px; border-radius: 14px; width: 88%; max-width: 340px;
-      text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      background: #fff; padding: 18px; border-radius: 14px; width: 90%; max-width: 360px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25); text-align: center;
     }
-    .modal-box h3 { margin: 0 0 12px; font-size: 17px; }
-    .modal-box input[type="date"] {
-      width: 100%; padding: 10px; font-size: 17px; font-weight: 700;
-      border: 2px solid #cbd5e1; border-radius: 8px; margin-bottom: 14px;
-    }
-    .modal-btns { display: flex; gap: 8px; }
-    .modal-btns button { flex: 1; padding: 10px; font-size: 15px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; }
+    .modal-box h3 { margin: 0 0 12px; font-size: 16px; color: #0f172a; }
+    .modal-list { max-height: 260px; overflow-y: auto; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: left; }
+    .modal-item { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .modal-item:hover { background: #eff6ff; }
+    .modal-item.active { background: #eff6ff; color: #2563eb; }
 
-    /* 상단 고정 요약 전광판 */
+    /* 상단 요약 전광판 */
     .summary-card {
       background: var(--card); border-radius: 12px; padding: 10px;
       margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-      border: 2px solid #94a3b8; position: sticky; top: 4px; z-index: 10;
+      border: 2px solid #94a3b8;
     }
     .summary-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 6px; font-size: 13px; font-weight: 800; color: #334155;
     }
-    .formula-btn {
-      background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 6px;
-      padding: 4px 8px; font-size: 11px; font-weight: 800; color: #1e293b; cursor: pointer;
-    }
 
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { border: 1px solid var(--border); padding: 4px 5px; text-align: center; vertical-align: middle; }
-    .col-name { width: 27%; font-weight: 800; font-size: 13px; background: #f8fafc; color: #0f172a; }
-    .col-gold { width: 36.5%; }
-    .col-cash { width: 36.5%; }
+    th, td { border: 1px solid var(--border); padding: 5px 6px; text-align: center; vertical-align: middle; }
+    .col-name { width: 34%; font-weight: 800; font-size: 13px; background: #f8fafc; color: #0f172a; }
+    .col-val { width: 33%; }
+    .col-memo { width: 33%; }
 
     .th-gold { background: var(--gold-bg); color: var(--gold-text); font-size: 13px; border-bottom: 2px solid var(--gold-border); padding: 6px 4px; }
     .th-cash { background: var(--cash-bg); color: var(--cash-text); font-size: 13px; border-bottom: 2px solid var(--cash-border); padding: 6px 4px; }
 
-    .sum-val { font-size: 16px; font-weight: 800; background: #f8fafc; text-align: right; padding-right: 8px; }
-    .diff-val { font-size: 16px; font-weight: 800; text-align: right; padding-right: 8px; background: #fff; }
-    .plus { color: var(--blue); }
-    .minus { color: var(--red); }
+    .sum-val { font-size: 14px; font-weight: 800; background: #f8fafc; text-align: right; padding-right: 8px; }
 
-    /* 숫자 입력칸 스타일 (폭 줄임) */
+    /* 입력칸 스타일 */
     .num-input {
-      width: 100%; padding: 5px 6px; font-size: 15px; font-weight: 700;
+      width: 100%; padding: 5px 6px; font-size: 14px; font-weight: 700;
       text-align: right; border: 1px solid #cbd5e1; border-radius: 5px;
       background: #fff; color: #0f172a; outline: none;
     }
     .num-input:focus { border: 2px solid #2563eb; background: #eff6ff; }
-    .hold-input { background: #fffbeb; border: 1.5px solid #f59e0b; }
 
-    /* 업체 리스트 카드 */
+    .name-input {
+      width: 100%; padding: 4px; font-size: 13px; font-weight: 800;
+      text-align: center; border: 1.5px dashed #3b82f6; border-radius: 4px;
+      background: #eff6ff; color: #1e3a8a; outline: none;
+    }
+    .name-input:focus { background: #fff; border: 2px solid #2563eb; }
+
+    /* 입력 리스트 카드 */
     .list-card {
       background: var(--card); border-radius: 12px; padding: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px;
@@ -114,48 +119,55 @@
 <body>
 
 <div class="container">
-  <!-- 1. 상단 날짜 선택 및 추가 -->
+  <!-- 1. 상단 날짜 선택 바 -->
   <div class="header-bar">
-    <select id="dateSelect" class="date-select" onchange="changeDate(this.value)"></select>
-    <button class="btn btn-add" onclick="openDateModal()">+ 새 날짜</button>
+    <button class="date-select-btn" id="dateSelectBtn" onclick="openDateModal()">📅 날짜 선택</button>
+    <button class="btn btn-add" onclick="addNewDate()">+ 새 날짜</button>
     <button class="btn btn-del" onclick="deleteCurrentDate()">삭제</button>
   </div>
 
-  <!-- 2. 상단 고정 요약 전광판 (합계 / 보유 / 차액) -->
+  <!-- 백업 및 복구 바 -->
+  <div class="backup-bar">
+    <button class="btn-backup" onclick="backupDataFile()">💾 데이터 백업하기</button>
+    <button class="btn-restore" onclick="triggerRestoreFile()">📂 데이터 복구하기</button>
+    <input type="file" id="restoreFileObj" style="display:none" accept=".json" onchange="restoreDataFile(event)">
+  </div>
+
+  <!-- 2. 상단 요약 전광판 -->
   <div class="summary-card">
     <div class="summary-header">
       <span>📊 실시간 정산 요약</span>
-      <button class="formula-btn" id="formulaBtn" onclick="toggleFormula()">차액: 보유 - 합계 🔄</button>
+      <button class="btn-reset" onclick="toggleCalcMode()" id="modeBtn" style="font-size:10px; padding:2px 6px;">차액: 보유 - 합계 🔄</button>
     </div>
     <table>
       <thead>
         <tr>
           <th class="col-name">구분</th>
-          <th class="col-gold th-gold">🟡 금선입 (돈)</th>
-          <th class="col-cash th-cash">💵 현금선입</th>
+          <th class="col-val th-gold">🟡 금선입 (돈)</th>
+          <th class="col-memo th-cash">💵 현금선입</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="col-name">합 계</td>
-          <td class="sum-val" id="sumGold">0돈</td>
+          <td class="col-name" id="sumLabel1">합계</td>
+          <td class="sum-val" id="sumGold">0</td>
           <td class="sum-val" id="sumCash">0</td>
         </tr>
         <tr>
-          <td class="col-name">보 유</td>
-          <td><input type="text" inputmode="decimal" class="num-input hold-input" id="holdGold" placeholder="보유금(돈)" oninput="onHoldInput('gold', this)"></td>
-          <td><input type="text" inputmode="numeric" class="num-input hold-input" id="holdCash" placeholder="보유현금" oninput="onHoldInput('cash', this)"></td>
+          <td class="col-name" id="sumLabel2">보유</td>
+          <td><input type="text" inputmode="decimal" class="num-input" id="holdGold" value="0" oninput="onHoldInput('gold', this)" style="text-align:right; font-size:14px; font-weight:800;"></td>
+          <td><input type="text" inputmode="numeric" class="num-input" id="holdCash" value="0" oninput="onHoldInput('cash', this)" style="text-align:right; font-size:14px; font-weight:800;"></td>
         </tr>
         <tr>
-          <td class="col-name">차 액</td>
-          <td class="diff-val" id="diffGold">0돈</td>
-          <td class="diff-val" id="diffCash">0</td>
+          <td class="col-name" id="sumLabel3">차액</td>
+          <td class="sum-val" id="diffGold" style="color:#2563eb;">0</td>
+          <td class="sum-val" id="diffCash" style="color:#2563eb;">0</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- 3. 9개 고정 업체 입력 표 -->
+  <!-- 3. 업체별 입력 표 -->
   <div class="list-card">
     <div class="list-title">
       <span>📝 업체별 입력 <span style="color:#16a34a; font-weight:700;">(자동저장)</span></span>
@@ -165,39 +177,38 @@
       <thead>
         <tr>
           <th class="col-name">업체명</th>
-          <th class="col-gold th-gold">🟡 금선입 (돈)</th>
-          <th class="col-cash th-cash">💵 현금선입</th>
+          <th class="col-val th-gold">🟡 금선입 (돈)</th>
+          <th class="col-memo th-cash">💵 현금선입</th>
         </tr>
       </thead>
-      <tbody id="vendorBody"></tbody>
+      <tbody id="itemBody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- 날짜 선택 달력 팝업 -->
+<!-- 날짜 선택 목록 팝업 -->
 <div class="modal-bg" id="dateModal">
   <div class="modal-box">
-    <h3>📅 추가할 날짜 선택</h3>
-    <input type="date" id="newDateInput">
-    <div class="modal-btns">
-      <button style="background:#e2e8f0; color:#334155;" onclick="closeDateModal()">취소</button>
-      <button style="background:#2563eb; color:#fff;" onclick="confirmAddDate()">칸 생성</button>
-    </div>
+    <h3>📅 저장된 날짜 선택</h3>
+    <div class="modal-list" id="modalDateList"></div>
+    <button class="btn" style="background:#cbd5e1; color:#334155; width:100%; padding:10px;" onclick="closeDateModal()">닫기</button>
   </div>
 </div>
 
 <script>
-  const VENDORS = [
-    "샤크존예작", "순천용당", "유성예작", "유성티파니",
-    "제이앤", "마산창원", "청주상당", "수정금방", "홍주얼리"
+  const STORAGE_KEY = "my_gold_note_ledger_v2";
+
+  const DEFAULT_COMPANIES = [
+    "샤크존예작", "순천용당", "유성예작", "유성티파니", 
+    "제이앤", "마산창원", "청수상당", "수정금방", "홍주얼리"
   ];
 
-  const STORAGE_KEY = "naemin_mobile_ledger_v2";
   let appData = {
-    formulaMode: "holdMinusSum",
     currentDate: "",
     records: {}
   };
+
+  let isHoldMinusSum = true;
 
   function getTodayStr() {
     const d = new Date();
@@ -208,8 +219,10 @@
   }
 
   function createEmptyRecord() {
-    const rec = { holdGold: "", holdCash: "", vendors: {} };
-    VENDORS.forEach(v => { rec.vendors[v] = { gold: "", cash: "" }; });
+    const rec = { holdGold: "", holdCash: "", companies: {} };
+    DEFAULT_COMPANIES.forEach(name => {
+      rec.companies[name] = { gold: "", cash: "" };
+    });
     return rec;
   }
 
@@ -218,19 +231,73 @@
     if (saved) {
       try { appData = JSON.parse(saved); } catch (e) {}
     }
+    const today = getTodayStr();
+    if (!appData.records) appData.records = {};
+
+    Object.keys(appData.records).forEach(d => {
+      const rec = appData.records[d];
+      if (rec && rec.companies) {
+        DEFAULT_COMPANIES.forEach(name => {
+          if (!rec.companies[name]) rec.companies[name] = { gold: "", cash: "" };
+        });
+      }
+    });
+
     const dates = Object.keys(appData.records).sort().reverse();
     if (dates.length === 0) {
-      const today = getTodayStr();
       appData.records[today] = createEmptyRecord();
       appData.currentDate = today;
-    } else if (!appData.currentDate || !appData.records[appData.currentDate]) {
-      appData.currentDate = dates[0];
+    } else {
+      if (!appData.currentDate || !appData.records[appData.currentDate]) {
+        appData.currentDate = dates[0];
+      }
     }
     saveData();
   }
 
   function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  }
+
+  /* 백업 및 복구 함수 */
+  function backupDataFile() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+    const dlAnchor = document.createElement('a');
+    const dateStr = getTodayStr();
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `금선입장부_백업_${dateStr}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  function triggerRestoreFile() {
+    if (confirm("기존에 입력된 데이터 위에 백업 파일을 덮어씌우게 됩니다. 복구하시겠습니까?")) {
+      document.getElementById("restoreFileObj").click();
+    }
+  }
+
+  function restoreDataFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed && parsed.records) {
+          appData = parsed;
+          saveData();
+          renderTable();
+          alert("데이터가 성공적으로 복구되었습니다!");
+        } else {
+          alert("올바른 백업 파일 형식이 아닙니다.");
+        }
+      } catch (err) {
+        alert("파일을 읽는 중 오류가 발생했습니다.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   function parseNum(val) {
@@ -240,194 +307,132 @@
     return isNaN(num) ? 0 : num;
   }
 
-  function formatGold(num) {
-    if (num === 0) return "0돈";
-    return Number(num.toFixed(2)).toLocaleString('ko-KR', { maximumFractionDigits: 2 }) + "돈";
-  }
-
   function formatCash(num) {
     return Math.round(num).toLocaleString('ko-KR');
   }
 
-  function formatCashInput(str) {
-    if (!str) return "";
-    const isMinus = str.trim().startsWith("-");
-    const raw = str.replace(/[^0-9]/g, "");
+  function formatGold(num) {
+    return Number(num).toFixed(2);
+  }
+
+  function formatInputVal(str, isDecimal = false) {
+    if (!str && str !== 0) return "";
+    const s = String(str);
+    const isMinus = s.trim().startsWith("-");
+    const raw = isDecimal ? s.replace(/[^0-9.]/g, "") : s.replace(/[^0-9]/g, "");
     if (!raw) return isMinus ? "-" : "";
-    return (isMinus ? "-" : "") + Number(raw).toLocaleString('ko-KR');
+    return (isMinus ? "-" : "") + raw;
   }
 
-  function renderDateSelect() {
-    const sel = document.getElementById("dateSelect");
-    const dates = Object.keys(appData.records).sort().reverse();
-    sel.innerHTML = "";
-    dates.forEach(d => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = `📅 ${d}`;
-      if (d === appData.currentDate) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
+  function renderTable() {
+    document.getElementById("dateSelectBtn").textContent = `📅 ${appData.currentDate || "날짜 없음"}`;
 
-  function renderVendorTable() {
-    const tbody = document.getElementById("vendorBody");
+    const rec = appData.records[appData.currentDate] || createEmptyRecord();
+    if (!appData.records[appData.currentDate]) {
+      appData.records[appData.currentDate] = rec;
+    }
+
+    document.getElementById("holdGold").value = formatInputVal(rec.holdGold, true);
+    document.getElementById("holdCash").value = formatInputVal(rec.holdCash, false);
+
+    const tbody = document.getElementById("itemBody");
     tbody.innerHTML = "";
-    const rec = appData.records[appData.currentDate];
 
-    VENDORS.forEach(v => {
-      const vData = (rec.vendors && rec.vendors[v]) ? rec.vendors[v] : { gold: "", cash: "" };
+    const companyNames = Object.keys(rec.companies || {});
+    companyNames.forEach(name => {
+      const item = rec.companies[name] || { gold: "", cash: "" };
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="col-name">${v}</td>
+        <td class="col-name"><span style="font-size:13px; font-weight:800; color:#0f172a;">${name}</span></td>
         <td>
           <input type="text" inputmode="decimal" class="num-input"
-            value="${vData.gold}" placeholder="0"
-            oninput="onVendorInput('${v}', 'gold', this)">
+            value="${formatInputVal(item.gold, true)}" placeholder="0"
+            oninput="onItemInput('${name}', 'gold', this)">
         </td>
         <td>
           <input type="text" inputmode="numeric" class="num-input"
-            value="${formatCashInput(String(vData.cash))}" placeholder="0"
-            oninput="onVendorInput('${v}', 'cash', this)">
+            value="${formatInputVal(item.cash, false)}" placeholder="0"
+            oninput="onItemInput('${name}', 'cash', this)">
         </td>
       `;
       tbody.appendChild(tr);
     });
 
-    document.getElementById("holdGold").value = rec.holdGold || "";
-    document.getElementById("holdCash").value = formatCashInput(String(rec.holdCash || ""));
-    updateFormulaBtnText();
     calculateTotals();
   }
 
-  function onVendorInput(vendor, type, el) {
+  function onItemInput(companyName, type, el) {
     const rec = appData.records[appData.currentDate];
-    if (type === 'cash') {
-      const formatted = formatCashInput(el.value);
-      el.value = formatted;
-      rec.vendors[vendor].cash = formatted.replace(/,/g, '');
-    } else {
-      rec.vendors[vendor].gold = el.value;
-    }
+    if (!rec || !rec.companies[companyName]) return;
+    rec.companies[companyName][type] = el.value;
     saveData();
     calculateTotals();
   }
 
   function onHoldInput(type, el) {
     const rec = appData.records[appData.currentDate];
-    if (type === 'cash') {
-      const formatted = formatCashInput(el.value);
-      el.value = formatted;
-      rec.holdCash = formatted.replace(/,/g, '');
-    } else {
-      rec.holdGold = el.value;
-    }
+    if (!rec) return;
+    if (type === 'gold') rec.holdGold = el.value;
+    if (type === 'cash') rec.holdCash = el.value;
     saveData();
     calculateTotals();
   }
 
   function calculateTotals() {
-    const rec = appData.records[appData.currentDate];
-    let sumG = 0, sumC = 0;
+    let totalGold = 0;
+    let totalCash = 0;
 
-    VENDORS.forEach(v => {
-      if (rec.vendors && rec.vendors[v]) {
-        sumG += parseNum(rec.vendors[v].gold);
-        sumC += parseNum(rec.vendors[v].cash);
-      }
-    });
+    const rec = appData.records[appData.currentDate];
+    if (rec && rec.companies) {
+      Object.keys(rec.companies).forEach(name => {
+        totalGold += parseNum(rec.companies[name].gold);
+        totalCash += parseNum(rec.companies[name].cash);
+      });
+    }
+
+    document.getElementById("sumGold").textContent = formatGold(totalGold) + "돈";
+    document.getElementById("sumCash").textContent = formatCash(totalCash);
 
     const holdG = parseNum(rec.holdGold);
     const holdC = parseNum(rec.holdCash);
 
-    const diffG = appData.formulaMode === "holdMinusSum" ? (holdG - sumG) : (sumG - holdG);
-    const diffC = appData.formulaMode === "holdMinusSum" ? (holdC - sumC) : (sumC - holdC);
+    let diffG = isHoldMinusSum ? (holdG - totalGold) : (totalGold - holdG);
+    let diffC = isHoldMinusSum ? (holdC - totalCash) : (totalCash - holdC);
 
-    document.getElementById("sumGold").textContent = formatGold(sumG);
-    document.getElementById("sumCash").textContent = formatCash(sumC);
+    const diffGoldEl = document.getElementById("diffGold");
+    const diffCashEl = document.getElementById("diffCash");
 
-    setDiffCell("diffGold", diffG, true);
-    setDiffCell("diffCash", diffC, false);
+    diffGoldEl.textContent = formatGold(diffG) + "돈";
+    diffCashEl.textContent = formatCash(diffC);
+
+    diffGoldEl.style.color = diffG < 0 ? "#dc2626" : "#2563eb";
+    diffCashEl.style.color = diffC < 0 ? "#dc2626" : "#2563eb";
   }
 
-  function setDiffCell(id, val, isGold) {
-    const el = document.getElementById(id);
-    const rounded = isGold ? Number(val.toFixed(2)) : Math.round(val);
-    const prefix = rounded > 0 ? "+" : "";
-    if (isGold) {
-      el.textContent = prefix + formatGold(rounded);
+  function toggleCalcMode() {
+    isHoldMinusSum = !isHoldMinusSum;
+    const btn = document.getElementById("modeBtn");
+    const l1 = document.getElementById("sumLabel1");
+    const l2 = document.getElementById("sumLabel2");
+    const l3 = document.getElementById("sumLabel3");
+
+    if (isHoldMinusSum) {
+      btn.textContent = "차액: 보유 - 합계 🔄";
+      l1.textContent = "합계";
+      l2.textContent = "보유";
+      l3.textContent = "차액";
     } else {
-      el.textContent = prefix + formatCash(rounded);
+      btn.textContent = "차액: 합계 - 보유 🔄";
+      l1.textContent = "보유";
+      l2.textContent = "합계";
+      l3.textContent = "차액";
     }
-    el.className = "diff-val " + (rounded > 0 ? "plus" : (rounded < 0 ? "minus" : ""));
-  }
-
-  function toggleFormula() {
-    appData.formulaMode = appData.formulaMode === "holdMinusSum" ? "sumMinusHold" : "holdMinusSum";
-    saveData();
-    updateFormulaBtnText();
     calculateTotals();
   }
 
-  function updateFormulaBtnText() {
-    const btn = document.getElementById("formulaBtn");
-    btn.textContent = appData.formulaMode === "holdMinusSum"
-      ? "차액: 보유 - 합계 🔄"
-      : "차액: 합계 - 보유 🔄";
-  }
-
-  function changeDate(newDate) {
-    appData.currentDate = newDate;
-    saveData();
-    renderVendorTable();
-  }
-
   function openDateModal() {
-    document.getElementById("newDateInput").value = getTodayStr();
-    document.getElementById("dateModal").style.display = "flex";
-  }
+    const listEl = document.getElementById("modalDateList");
+    listEl.innerHTML = "";
+    const dates = Object.keys(appData.records).sort().reverse();
 
-  function closeDateModal() {
-    document.getElementById("dateModal").style.display = "none";
-  }
-
-  function confirmAddDate() {
-    const d = document.getElementById("newDateInput").value;
-    if (!d) return;
-    if (!appData.records[d]) {
-      appData.records[d] = createEmptyRecord();
-    }
-    appData.currentDate = d;
-    saveData();
-    renderDateSelect();
-    renderVendorTable();
-    closeDateModal();
-  }
-
-  function clearCurrentInputs() {
-    if (!confirm(`[${appData.currentDate}] 날짜의 입력된 숫자를 모두 0으로 비우시겠습니까?`)) return;
-    appData.records[appData.currentDate] = createEmptyRecord();
-    saveData();
-    renderVendorTable();
-  }
-
-  function deleteCurrentDate() {
-    const dates = Object.keys(appData.records);
-    if (dates.length <= 1) {
-      clearCurrentInputs();
-    } else {
-      if (!confirm(`[${appData.currentDate}] 날짜 기록을 아예 삭제하시겠습니까?`)) return;
-      delete appData.records[appData.currentDate];
-      appData.currentDate = Object.keys(appData.records).sort().reverse()[0];
-      saveData();
-      renderDateSelect();
-      renderVendorTable();
-    }
-  }
-
-  loadData();
-  renderDateSelect();
-  renderVendorTable();
-</script>
-</body>
-</html>
+    dates.forEach(d => {
