@@ -23,7 +23,7 @@
     body { margin: 0; padding: 8px; background: var(--bg); color: #1e293b; }
     .container { max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
 
-    /* 상단 날짜 선택 바 */
+    /* 상단 버튼 배치: 날짜선택(왼쪽), 새날짜(가운데), 삭제(오른쪽) 원래 배치 */
     .header-bar {
       background: var(--primary); color: #fff; padding: 10px 12px;
       border-radius: 12px; display: flex; justify-content: space-between;
@@ -54,6 +54,7 @@
     .modal-list { max-height: 260px; overflow-y: auto; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: left; }
     .modal-item { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
     .modal-item:hover { background: #eff6ff; }
+    .modal-item.active { background: #eff6ff; color: #2563eb; }
 
     /* 상단 요약 전광판 */
     .summary-card {
@@ -373,8 +374,8 @@
 
     dates.forEach(d => {
       const div = document.createElement("div");
-      div.className = "modal-item";
-      div.innerHTML = `<span>📅 ${d}</span>`;
+      div.className = `modal-item ${d === appData.currentDate ? 'active' : ''}`;
+      div.innerHTML = `<span>📅 ${d}</span> <span>${d === appData.currentDate ? '🟢 선택됨' : ''}</span>`;
       div.onclick = () => {
         appData.currentDate = d;
         saveData();
@@ -404,7 +405,7 @@
 
   function clearCurrentInputs() {
     if (!appData.currentDate) return;
-    if (!confirm(`[${appData.currentDate}] 날짜의 입력된 내용을 모두 비우시겠습니까?`)) return;
+    if (!confirm(`[${appDate.currentDate}] 날짜의 입력된 내용을 모두 비우시겠습니까?`)) return;
     appData.records[appData.currentDate] = createEmptyRecord();
     saveData();
     renderTable();
@@ -417,8 +418,8 @@
       alert("마지막 남은 날짜는 삭제할 수 없습니다.");
       return;
     }
-    if (!confirm(`[${appDate.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
-    delete appData.records[appDate.currentDate];
+    if (!confirm(`[${appData.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
+    delete appData.records[appData.currentDate];
     const remainDates = Object.keys(appData.records).sort().reverse();
     appData.currentDate = remainDates[0];
     saveData();
