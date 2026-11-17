@@ -471,11 +471,11 @@
   function deleteCurrentDate() {
     if (!appData.currentDate) return;
     const dates = Object.keys(appData.records);
-    if.dates.length <= 1) { // 안전 장치
+    if (dates.length <= 1) {
       alert("마지막 남은 날짜는 삭제할 수 없습니다.");
       return;
     }
-    if (!confirm(`[${appData.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
+    if (!confirm(`[${appDate.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
     delete appData.records[appData.currentDate];
     const remainDates = Object.keys(appData.records).sort().reverse();
     appData.currentDate = remainDates[0];
