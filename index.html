@@ -18,6 +18,7 @@
       --border: #cbd5e1;
       --blue: #2563eb;
       --red: #dc2626;
+      --purple: #7c3aed;
     }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; }
     body { margin: 0; padding: 8px; background: var(--bg); color: #1e293b; }
@@ -27,7 +28,7 @@
     .header-bar {
       background: var(--primary); color: #fff; padding: 10px 12px;
       border-radius: 12px; display: flex; justify-content: space-between;
-      align-items: center; gap: 6px; margin-bottom: 10px;
+      align-items: center; gap: 6px; margin-bottom: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     .date-select {
@@ -40,6 +41,13 @@
     }
     .btn-add { background: #3b82f6; color: #fff; }
     .btn-del { background: #ef4444; color: #fff; padding: 8px 10px; }
+
+    /* 백업 및 복구 버튼 바 추가 */
+    .backup-bar {
+      display: flex; gap: 6px; margin-bottom: 10px;
+    }
+    .btn-backup { flex: 1; background: var(--purple); color: #fff; padding: 8px; border-radius: 8px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .btn-restore { flex: 1; background: #059669; color: #fff; padding: 8px; border-radius: 8px; border: none; font-weight: 800; font-size: 13px; cursor: pointer; }
 
     /* 날짜 선택 달력 팝업 */
     .modal-bg {
@@ -119,6 +127,13 @@
     <select id="dateSelect" class="date-select" onchange="changeDate(this.value)"></select>
     <button class="btn btn-add" onclick="openDateModal()">+ 새 날짜</button>
     <button class="btn btn-del" onclick="deleteCurrentDate()">삭제</button>
+  </div>
+
+  <!-- 안전한 백업 및 복구 버튼 바 -->
+  <div class="backup-bar">
+    <button class="btn-backup" onclick="backupDataFile()">💾 데이터 백업하기</button>
+    <button class="btn-restore" onclick="triggerRestoreFile()">📂 데이터 복구하기</button>
+    <input type="file" id="restoreFileObj" style="display:none" accept=".json" onchange="restoreDataFile(event)">
   </div>
 
   <!-- 2. 상단 고정 요약 전광판 (합계 / 보유 / 차액) -->
@@ -231,6 +246,48 @@
 
   function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  }
+
+  /* 백업 및 복구 기능 함수 추가 */
+  function backupDataFile() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+    const dlAnchor = document.createElement('a');
+    const dateStr = getTodayStr();
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `선입정산장부_백업_${dateStr}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  function triggerRestoreFile() {
+    if (confirm("기존에 입력된 데이터 위에 백업 파일을 덮어씌우게 됩니다. 복구하시겠습니까?")) {
+      document.getElementById("restoreFileObj").click();
+    }
+  }
+
+  function restoreDataFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed && parsed.records) {
+          appData = parsed;
+          saveData();
+          renderDateSelect();
+          renderVendorTable();
+          alert("데이터가 성공적으로 복구되었습니다!");
+        } else {
+          alert("올바른 백업 파일 형식이 아닙니다.");
+        }
+      } catch (err) {
+        alert("파일을 읽는 중 오류가 발생했습니다.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   function parseNum(val) {
