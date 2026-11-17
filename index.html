@@ -41,7 +41,7 @@
     .btn-add { background: #3b82f6; color: #fff; }
     .btn-del { background: #ef4444; color: #fff; }
 
-    /* 날짜 선택 목록 팝업 (원래 쓰시던 라디오 버튼 형태) */
+    /* 날짜 선택 목록 팝업 */
     .modal-bg {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
@@ -163,7 +163,7 @@
   </div>
 </div>
 
-<!-- 날짜 선택 목록 팝업 (원래 쓰시던 라디오 버튼 형태) -->
+<!-- 날짜 선택 목록 팝업 -->
 <div class="modal-bg" id="dateModal">
   <div class="modal-box">
     <h3>📅 저장된 날짜 선택</h3>
@@ -173,7 +173,6 @@
 </div>
 
 <script>
-  // 원래 쓰시던 고유 데이터 저장소 키
   const STORAGE_KEY = "my_gold_note_ledger";
 
   const DEFAULT_COMPANIES = [
@@ -374,8 +373,8 @@
 
     dates.forEach(d => {
       const div = document.createElement("div");
-      div.className = `modal-item`;
-      div.innerHTML = `<span>📅 ${d}</span> <span>${d === appData.currentDate ? '🟢 선택됨' : ''}</span>`;
+      div.className = "modal-item";
+      div.innerHTML = `<span>📅 ${d}</span>`;
       div.onclick = () => {
         appData.currentDate = d;
         saveData();
@@ -405,8 +404,8 @@
 
   function clearCurrentInputs() {
     if (!appData.currentDate) return;
-    if (!confirm(`[${appDate.currentDate}] 날짜의 입력된 내용을 모두 비우시겠습니까?`)) return;
-    appData.records[appDate.currentDate] = createEmptyRecord();
+    if (!confirm(`[${appData.currentDate}] 날짜의 입력된 내용을 모두 비우시겠습니까?`)) return;
+    appData.records[appData.currentDate] = createEmptyRecord();
     saveData();
     renderTable();
   }
