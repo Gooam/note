@@ -189,7 +189,7 @@
 </div>
 
 <script>
-  // 기존 데이터가 안전하게 저장되도록 원래 키 유지
+  // 원래 쓰시던 고유 저장소 키 유지
   const STORAGE_KEY = "my_gold_note_ledger";
 
   const DEFAULT_COMPANIES = [
@@ -475,8 +475,8 @@
       alert("마지막 남은 날짜는 삭제할 수 없습니다.");
       return;
     }
-    if (!confirm(`[${appData.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
-    delete appData.records[appData.currentDate];
+    if (!confirm(`[${appDate.currentDate}] 날짜 기록을 삭제하시겠습니까?`)) return;
+    delete appData.records[appDate.currentDate];
     const remainDates = Object.keys(appData.records).sort().reverse();
     appData.currentDate = remainDates[0];
     saveData();
